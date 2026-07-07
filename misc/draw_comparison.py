@@ -10,9 +10,9 @@ with tempfile.TemporaryDirectory() as tmpdir:
         "--source",
         "G4NDL.4.7.1",
         "--output",
-        tmpdir.name,
+        tmpdir,
         "--cache-dir",
-        tmpdir.name,
+        tmpdir,
         "--rename",
         "G4NDL.4.7.1_adjusted",
         "-v",
@@ -22,12 +22,12 @@ with tempfile.TemporaryDirectory() as tmpdir:
 
     adjusted = read_xs(
         load_target(
-            f"{tmpdir.name}/G4NDL.4.7.1_adjusted/Capture/CrossSection/32_76_Germanium.z"
+            f"{tmpdir}/G4NDL.4.7.1_adjusted/Capture/CrossSection/32_76_Germanium.z"
         )
     )
     original = read_xs(
         load_target(
-            f"{tmpdir.name}/extracted/G4NDL.4.7.1/G4NDL4.7.1/Capture/CrossSection/32_76_Germanium.z"
+            f"{tmpdir}/extracted/G4NDL.4.7.1/G4NDL4.7.1/Capture/CrossSection/32_76_Germanium.z"
         )
     )
 
@@ -37,6 +37,7 @@ with tempfile.TemporaryDirectory() as tmpdir:
     plt.plot(original_data[:, 0], original_data[:, 1], label="original (G4NDL.4.7.1)")
     plt.plot(adjusted_data[:, 0], adjusted_data[:, 1], label="adjusted (G4NDL.4.7.1)")
     plt.text(1e-4, 1e-4, r"$^{76}$Ge(n,$\gamma$)", size=16, weight="bold")
+    plt.axvspan(0.026, 52e3)
     plt.xlabel("Energy (eV)")
     plt.ylabel("Cross Section (barn)")
     plt.yscale("log")
