@@ -63,7 +63,7 @@ environment variable, e.g. `G4NEUTRONHPDATA` / `G4PARTICLEHPDATA`.
 | `--substitution FILE` | n_TOF `(E, σ)` table (default: bundled `76GE_XS.dat`). |
 | `--no-substitution` | Scale only; skip substitution. |
 | `--legacy-energy-shift` | Reproduce the legacy `E/factor` artifact on the below-range tail (energy ÷ factor, σ left unscaled) instead of the default uniform σ scaling (see below). |
-| `--base-library SOURCE` | Full G4NDL used to fill in folders a translated library omits (default: a pinned `G4NDL.4.7.1` download). Accepts a dir / `.tar.gz` / IAEA name / URL, like `--source`. |
+| `--base-library SOURCE` | Full G4NDL used to fill in folders a translated library omits (default: a pinned `G4NDL.4.7.1` download). Accepts a dir / `.tar.gz` / IAEA name / G4NDL name / URL, like `--source`. |
 | `--allow-incomplete` | Write the library even when the omitted folders cannot be filled in (produces a library Geant4 cannot fully use). |
 | `--cache-dir DIR` | Where downloads/extractions are cached. |
 | `--rename NAME` | Name of the output library directory. |
