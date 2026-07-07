@@ -25,6 +25,9 @@ custom-g4ndl --source <NAME|URL|dir|tarball> --output DIR [options]
 
 The `--source` can be:
 
+* a **G4NDL library name**, downloaded from
+  `https://cern.ch/geant4-data/datasets/<NAME>.tar.gz`
+  (e.g. `G4NDL.4.5`, `G4NDL.4.7.1`),
 * an **IAEA library name**, downloaded from
   `https://nds.iaea.org/geant4/libraries/<NAME>.tar.gz`
   (e.g. `JEFF-3.3`, `ENDF-VIII.0`, `JENDL-4.0u`, `ENDF-B-VIII.1`, `JENDL-5.0`),

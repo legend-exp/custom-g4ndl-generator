@@ -23,6 +23,7 @@ from pathlib import Path
 log = logging.getLogger(__name__)
 
 IAEA_BASE = "https://nds.iaea.org/geant4/libraries/"
+G4NDL_BASE = "https://cern.ch/geant4-data/datasets/"
 
 #: Default base G4NDL library used to fill in the folders that the IAEA-translated
 #: libraries (JEFF-3.3, ENDF-VIII.0, JENDL-*) deliberately omit.  These libraries
@@ -131,6 +132,11 @@ def _find_library_root(path: Path) -> Path:
     return path
 
 
+def _is_G4NDL_library_name(name: str) -> bool:
+    """Return True if *name* looks like an G4NDL library name."""
+    return "G4NDL" in name
+
+
 def resolve_source(source: str, cache_dir: Path | None = None) -> Path:
     """Resolve *source* to the root directory of an extracted G4NDL library."""
     cache_dir = Path(cache_dir) if cache_dir else default_cache_dir()
@@ -151,7 +157,11 @@ def resolve_source(source: str, cache_dir: Path | None = None) -> Path:
         name = _archive_stem(Path(source).name)
     else:
         name = source
-        url = f"{IAEA_BASE}{name}.tar.gz"
+        if _is_G4NDL_library_name(name):
+            url = f"{G4NDL_BASE}{name}.tar.gz"
+        else:
+            url = f"{IAEA_BASE}{name}.tar.gz"
+        print(f"downloading {name} from {url} ...")
 
     archive = _download(url, cache_dir / "downloads" / f"{name}.tar.gz")
     dest = cache_dir / "extracted" / name

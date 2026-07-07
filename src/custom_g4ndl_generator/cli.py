@@ -51,7 +51,7 @@ def build_parser() -> argparse.ArgumentParser:
         "--source",
         required=True,
         help="library source: a local directory, a local .tar.gz archive, an "
-        "IAEA library name (e.g. JEFF-3.3, ENDF-VIII.0, JENDL-4.0u), or a URL.",
+        "IAEA library name (e.g. JEFF-3.3, ENDF-VIII.0, JENDL-4.0u), a G4NDL library name (e.g. G4NDL.4.5, G4NDL.4.7.1, ...), or a URL.",
     )
     p.add_argument(
         "--output",
