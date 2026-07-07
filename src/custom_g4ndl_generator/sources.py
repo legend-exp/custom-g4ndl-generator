@@ -44,7 +44,9 @@ SUPPLEMENT_RELPATHS = (
 _ARCHIVE_SUFFIXES = (".tar.gz", ".tgz", ".tar")
 
 # The IAEA server returns HTTP 403 for the default urllib User-Agent.
-_USER_AGENT = "custom-g4ndl-generator (https://github.com/legend-exp/custom-g4ndl-generator)"
+_USER_AGENT = (
+    "custom-g4ndl-generator (https://github.com/legend-exp/custom-g4ndl-generator)"
+)
 
 
 def default_cache_dir() -> Path:
@@ -86,8 +88,12 @@ def _download(url: str, dest: Path) -> Path:
                 out.write(chunk)
                 read += len(chunk)
                 if total:
-                    log.info("  %5.1f%% (%d/%d MB)", 100 * read / total,
-                             read >> 20, total >> 20)
+                    log.info(
+                        "  %5.1f%% (%d/%d MB)",
+                        100 * read / total,
+                        read >> 20,
+                        total >> 20,
+                    )
     tmp.replace(dest)
     return dest
 

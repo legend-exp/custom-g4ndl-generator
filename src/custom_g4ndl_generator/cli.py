@@ -39,6 +39,7 @@ log = logging.getLogger("custom_g4ndl_generator")
 
 
 def build_parser() -> argparse.ArgumentParser:
+    """Build the command-line argument parser."""
     p = argparse.ArgumentParser(
         prog="custom-g4ndl",
         description=(
@@ -104,19 +105,37 @@ def build_parser() -> argparse.ArgumentParser:
         "folders and no base library fills them in (Geant4 neutron-HP, "
         "including IsotopeProduction, will not work correctly).",
     )
-    p.add_argument("--cache-dir", type=Path, default=None,
-                   help="directory for downloads and extractions.")
-    p.add_argument("--rename", metavar="NAME", default=None,
-                   help="name for the output library directory (default: same "
-                   "as the source library).")
-    p.add_argument("--no-tarball", action="store_true",
-                   help="do not also produce a .tar.gz of the output library.")
-    p.add_argument("--force", action="store_true",
-                   help="overwrite the output library directory if it exists.")
-    p.add_argument("-v", "--verbose", action="count", default=0,
-                   help="increase logging verbosity (-v, -vv).")
-    p.add_argument("--version", action="version",
-                   version=f"%(prog)s {__version__}")
+    p.add_argument(
+        "--cache-dir",
+        type=Path,
+        default=None,
+        help="directory for downloads and extractions.",
+    )
+    p.add_argument(
+        "--rename",
+        metavar="NAME",
+        default=None,
+        help="name for the output library directory (default: same "
+        "as the source library).",
+    )
+    p.add_argument(
+        "--no-tarball",
+        action="store_true",
+        help="do not also produce a .tar.gz of the output library.",
+    )
+    p.add_argument(
+        "--force",
+        action="store_true",
+        help="overwrite the output library directory if it exists.",
+    )
+    p.add_argument(
+        "-v",
+        "--verbose",
+        action="count",
+        default=0,
+        help="increase logging verbosity (-v, -vv).",
+    )
+    p.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
     return p
 
 
@@ -130,6 +149,7 @@ def _make_tarball(lib_dir: Path) -> Path:
 
 
 def main(argv: list[str] | None = None) -> int:
+    """Generate a custom G4NDL library with an adjusted Ge-76 capture cross section."""
     args = build_parser().parse_args(argv)
     logging.basicConfig(
         level=logging.WARNING - 10 * min(args.verbose, 2),
@@ -169,12 +189,16 @@ def main(argv: list[str] | None = None) -> int:
                 "(--allow-incomplete). Geant4 neutron-HP, including "
                 "IsotopeProduction, will not work correctly until these folders "
                 "are overlaid from a full G4NDL.",
-                root.name, ", ".join(missing),
+                root.name,
+                ", ".join(missing),
             )
         else:
             base_source = args.base_library or DEFAULT_BASE_G4NDL
-            log.info("source missing %s; supplementing from base %s",
-                     ", ".join(missing), base_source)
+            log.info(
+                "source missing %s; supplementing from base %s",
+                ", ".join(missing),
+                base_source,
+            )
             try:
                 base_root = resolve_source(base_source, cache_dir=args.cache_dir)
             except Exception as exc:  # noqa: BLE001 (report any resolution failure)
@@ -182,7 +206,10 @@ def main(argv: list[str] | None = None) -> int:
                     "%s is incomplete (missing %s) and the base library %s could "
                     "not be resolved: %s\nSupply --base-library pointing at a full "
                     "G4NDL, or pass --allow-incomplete to write it anyway.",
-                    root.name, ", ".join(missing), base_source, exc,
+                    root.name,
+                    ", ".join(missing),
+                    base_source,
+                    exc,
                 )
                 return 3
             base_missing = [rel for rel in missing if not (base_root / rel).is_dir()]
@@ -191,7 +218,9 @@ def main(argv: list[str] | None = None) -> int:
                     "base library %s does not provide %s needed to complete %s.\n"
                     "Supply a --base-library that has them, or pass "
                     "--allow-incomplete.",
-                    base_root.name, ", ".join(base_missing), root.name,
+                    base_root.name,
+                    ", ".join(base_missing),
+                    root.name,
                 )
                 return 3
 
@@ -216,8 +245,12 @@ def main(argv: list[str] | None = None) -> int:
     else:
         sub_path = args.substitution or default_substitution_path()
         substitution = read_substitution(sub_path)
-        log.info("substitution from %s (%d points, factor=%s)",
-                 sub_path, len(substitution), args.scale)
+        log.info(
+            "substitution from %s (%d points, factor=%s)",
+            sub_path,
+            len(substitution),
+            args.scale,
+        )
 
     adjusted = adjust_ge76_capture(
         pairs,

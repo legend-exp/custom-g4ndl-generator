@@ -1,0 +1,29 @@
+# Run locally with:  pre-commit install   (then it runs on every git commit)
+# Run over everything:  pre-commit run --all-files
+default_language_version:
+  python: python3
+
+repos:
+  # General hygiene.
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-toml
+      - id: mixed-line-ending
+
+  # Code formatting.
+  - repo: https://github.com/psf/black
+    rev: 24.10.0
+    hooks:
+      - id: black
+
+  # Documentation / docstring checks (numpy convention, package sources only).
+  - repo: https://github.com/PyCQA/pydocstyle
+    rev: 6.3.0
+    hooks:
+      - id: pydocstyle
+        args: ["--convention=numpy"]
+        files: ^src/custom_g4ndl_generator/.*\.py$

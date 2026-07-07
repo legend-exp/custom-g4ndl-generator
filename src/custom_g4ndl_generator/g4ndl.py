@@ -1,4 +1,4 @@
-"""Read and write G4NDL ``Capture/CrossSection`` data files.
+r"""Read and write G4NDL ``Capture/CrossSection`` data files.
 
 A G4NDL cross-section file is *not* literal ENDF-6: it is G4NDL's own internal
 representation, a small header followed by a flat stream of ``(energy,
@@ -36,7 +36,7 @@ _INT_RE = re.compile(r"^[+-]?\d+$")
 
 
 def _is_data_token(tok: str) -> bool:
-    """True for a token that looks like tabulated data (has a '.' or exponent)."""
+    """Return true for a token that looks like tabulated data (has a '.' or exponent)."""
     if not _FLOAT_RE.match(tok):
         return False
     return ("." in tok) or ("e" in tok) or ("E" in tok)
@@ -137,7 +137,7 @@ def write_xs(pairs: np.ndarray, style: XSStyle) -> str:
         # Replace only the rightmost occurrence of the original N token.
         pos = line.rfind(style.n_token)
         if pos != -1:
-            line = line[:pos] + new_token + line[pos + len(style.n_token):]
+            line = line[:pos] + new_token + line[pos + len(style.n_token) :]
         header_lines[style.n_line_idx] = line
 
     out: list[str] = list(header_lines)
@@ -145,7 +145,7 @@ def write_xs(pairs: np.ndarray, style: XSStyle) -> str:
     per_row = style.pairs_per_line * 2
     flat = pairs.reshape(-1)
     for start in range(0, flat.size, per_row):
-        row = flat[start:start + per_row]
+        row = flat[start : start + per_row]
         cells = style.data_sep.join(style.float_fmt % v for v in row)
         out.append(style.data_leading + cells)
 
@@ -156,8 +156,9 @@ def write_xs(pairs: np.ndarray, style: XSStyle) -> str:
 # Transparent zlib (.z) handling for individual data files
 # --------------------------------------------------------------------------- #
 
+
 def is_compressed(path) -> bool:
-    """True if *path* is a zlib-compressed G4NDL data file (``.z`` suffix)."""
+    """Return true if *path* is a zlib-compressed G4NDL data file (``.z`` suffix)."""
     return str(path).endswith(".z")
 
 

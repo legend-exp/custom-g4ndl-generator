@@ -113,6 +113,38 @@ rather than emit a silently-broken library; pass `--allow-incomplete` to overrid
 custom-g4ndl --source JEFF-3.3 --output ./out --base-library /data/G4NDL4.7.1
 ```
 
+## Workflow: generate a library and load it into Geant4
+
+End-to-end, from a source library to a Geant4 run:
+
+```bash
+# 1. Generate. Writes ./out/JEFF-3.3/ (the library) and ./out/JEFF-3.3.tar.gz.
+#    --base-library fills in the folders JEFF-3.3 omits (see above); drop it to
+#    use the pinned default G4NDL download instead.
+custom-g4ndl --source JEFF-3.3 --output ./out --base-library /data/G4NDL4.7.1
+
+# 2. Point Geant4's neutron/particle-HP data at the generated directory.
+#    Use an ABSOLUTE path; export it in your shell (or .bashrc, or job script).
+export G4NEUTRONHPDATA="$(pwd)/out/JEFF-3.3"
+#    Geant4 >= 11 reads the generalized particle-HP variable instead:
+export G4PARTICLEHPDATA="$G4NEUTRONHPDATA"
+
+# 3. Run your Geant4 application as usual. It now uses the adjusted Ge-76
+#    capture cross section. Sanity-check the variable actually points at a
+#    library root (should list Capture/ Elastic/ IsotopeProduction/ ...):
+ls "$G4NEUTRONHPDATA"
+```
+
+Notes:
+
+* Set the variable to the **library directory** (the one containing `Capture/`),
+  not to `./out` and not to the `.tar.gz`.
+* Which variable Geant4 honors depends on its version — `G4NEUTRONHPDATA` for the
+  neutron-HP models, `G4PARTICLEHPDATA` for the particle-HP models in Geant4 ≥ 11.
+  Exporting both is harmless and portable.
+* To deploy elsewhere, copy the `.tar.gz`, extract it, and point the variable at
+  the extracted directory.
+
 ## G4NDL cross-section format
 
 A G4NDL `Capture/CrossSection` file is G4NDL's internal representation (not
@@ -124,6 +156,16 @@ See `src/custom_g4ndl_generator/g4ndl.py`.
 ## Development
 
 ```bash
-pip install -e '.[test]'
+pip install -e '.[dev]'   # runtime + pytest + pre-commit + black + pydocstyle
 pytest
+
+# Install the git hooks so black + documentation checks run on every commit:
+pre-commit install
+pre-commit run --all-files   # run them once over the whole tree
 ```
+
+The hooks (`.pre-commit-config.yaml`) run [black](https://black.readthedocs.io/)
+formatting and [pydocstyle](https://www.pydocstyle.org/) documentation checks
+(numpy convention, package sources only), plus basic file hygiene. The same
+checks and the test suite (Python 3.9–3.12) run in CI on every push and pull
+request — see [`.github/workflows/tests.yml`](.github/workflows/tests.yml).

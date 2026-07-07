@@ -19,6 +19,7 @@ Issue = "https://github.com/legend-exp/legend-simflow/issues/265"
 
 [project.optional-dependencies]
 test = ["pytest>=7"]
+dev = ["pytest>=7", "pre-commit", "black", "pydocstyle"]
 
 [project.scripts]
 custom-g4ndl = "custom_g4ndl_generator.cli:main"
@@ -28,3 +29,11 @@ where = ["src"]
 
 [tool.setuptools.package-data]
 custom_g4ndl_generator = ["data/*"]
+
+[tool.black]
+line-length = 88
+target-version = ["py39"]
+
+[tool.pydocstyle]
+convention = "numpy"
+match-dir = "custom_g4ndl_generator"
