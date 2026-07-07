@@ -1,0 +1,23 @@
+76GE_XS.dat -- n_TOF Ge-76(n,gamma) capture cross section
+=========================================================
+
+Substitution table used by ``custom-g4ndl`` to replace the low/mid-energy
+region of the G4NDL ``Capture/CrossSection/32_76_Germanium`` cross section.
+
+Columns (whitespace/tab separated, one header line):
+
+    Energy        incoming neutron energy       [eV]
+    Th_initial    (n,gamma) cross section        [barn]   <- used as sigma
+    e_sigma       cross-section uncertainty      [barn]   (ignored)
+
+Energy range: ~0.026 eV to ~52 keV.
+
+Source
+------
+n_TOF measurement of the Ge-76 radiative neutron capture cross section:
+
+    Phys. Rev. C 104, 044610 (2021)
+    https://journals.aps.org/prc/abstract/10.1103/PhysRevC.104.044610
+
+Motivation and workflow: legend-simflow issue #265
+    https://github.com/legend-exp/legend-simflow/issues/265
