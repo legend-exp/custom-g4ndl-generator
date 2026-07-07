@@ -34,10 +34,17 @@ with tempfile.TemporaryDirectory() as tmpdir:
     original_data = original[0]
     adjusted_data = adjusted[0]
 
+    mask_substituted = (adjusted_data[:, 0] > 0.026) & (adjusted_data[:, 0] < 56e3)
+    substituted_data = adjusted_data[mask_substituted]
+
     plt.plot(original_data[:, 0], original_data[:, 1], label="original (G4NDL.4.7.1)")
     plt.plot(adjusted_data[:, 0], adjusted_data[:, 1], label="adjusted (G4NDL.4.7.1)")
+    plt.plot(
+        substituted_data[:, 0],
+        substituted_data[:, 1],
+        label="substituted (n_TOF)",
+    )
     plt.text(1e-4, 1e-4, r"$^{76}$Ge(n,$\gamma$)", size=16, weight="bold")
-    plt.axvspan(0.026, 52e3)
     plt.xlabel("Energy (eV)")
     plt.ylabel("Cross Section (barn)")
     plt.yscale("log")
