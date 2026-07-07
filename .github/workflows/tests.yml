@@ -34,3 +34,26 @@ jobs:
         with:
           python-version: "3.11"
       - uses: pre-commit/action@v3.0.1
+
+  draw-comparison:
+    name: draw-comparison
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write          # needed to push back
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e '.[test]'
+      - name: Draw comparison
+        run: python misc/draw_comparison.py
+      - name: Commit updated plot
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          commit_message: "misc: regenerate comparison plot [skip ci]"
+          file_pattern: misc/comparison_plot.png
