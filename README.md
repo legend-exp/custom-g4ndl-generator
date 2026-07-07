@@ -92,6 +92,11 @@ With substitution enabled (the default), for scale `factor`:
 With `--no-substitution`, every σ is multiplied by `factor` and the energy grid
 is left unchanged.
 
+An illustration of the effect is in `misc/draw_comparison.ipynb` (requires `matplotlib`)
+with the reulting plot also shown below.
+
+![Comparison of original and adjusted Ge-76(n,γ) cross sections](misc/comparison_plot.png)
+
 ## Completing translated libraries
 
 The IAEA-translated libraries (`JEFF-3.3`, `ENDF-VIII.0`, `JENDL-*`) are
