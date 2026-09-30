@@ -1,0 +1,36 @@
+# Ge-76(n,gamma) capture cross section: scale by 1.68 above 52 keV and
+# replace 0.026 eV - 52 keV with the n_TOF measurement
+# (Gawlik-Ramiega et al., Phys. Rev. C 104, 044610). Below 0.026 eV, a 1/v
+# extrapolation of the first n_TOF point replaces the G4NDL data.
+#
+# Run:  custom-g4ndl ge76_ntof.yaml
+# Options on the command line override the values in this file, for example:
+#       custom-g4ndl ge76_ntof.yaml --source ENDF-VIII.0 --output ./other
+
+# Command-line options. Keys are the option names without the leading "--".
+source: JEFF-3.3
+output: ./out
+# base-library: /path/to/G4NDL4.7.1   # default: pinned G4NDL.4.7.1 download
+# rename: JEFF-3.3_Ge76_nTOF
+# tarball: false                     # true: also write <name>.tar.gz
+# allow-incomplete: false
+# force: false
+# cache-dir: /path/to/cache
+
+# Adjustments. The nesting follows the G4NDL folder layout, with the names
+# exactly as in the library. The ".z" suffix of the file name is optional:
+# the key selects the plain and the compressed file.
+customization:
+  Capture:
+    CrossSection:
+      32_76_Germanium:
+        # Multiply sigma by this factor outside the substitution range.
+        scale: 1.68
+        # [E (eV), sigma (barn)] pairs that replace the region they span.
+        # Give them in-line, for example:
+        #   substitute:
+        #     - [0.0257, 0.1543]
+        #     - [0.0258, 0.1542]
+        # or as a YAML file that holds the same list (path relative to this
+        # config file):
+        substitute: 76GE_XS.yaml

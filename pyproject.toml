@@ -5,13 +5,13 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "custom-g4ndl-generator"
 version = "0.1.0"
-description = "Generate custom G4NDL neutron-data libraries with an adjusted Ge-76(n,γ) capture cross section"
+description = "Generate custom G4NDL neutron-data libraries with adjusted cross sections"
 readme = "README.md"
 requires-python = ">=3.9"
 license = { text = "MIT" }
 authors = [{ name = "LEGEND Collaboration" }]
 keywords = ["geant4", "g4ndl", "neutron", "cross-section", "legend"]
-dependencies = ["numpy>=1.20","matplotlib>=3.4"]
+dependencies = ["numpy>=1.20", "pyyaml"]
 
 [project.urls]
 Homepage = "https://github.com/legend-exp/custom-g4ndl-generator"
@@ -19,6 +19,8 @@ Issue = "https://github.com/legend-exp/legend-simflow/issues/265"
 
 [project.optional-dependencies]
 test = ["pytest>=7"]
+plot = ["matplotlib>=3.4"]
+docs = ["sphinx", "myst-parser", "furo"]
 dev = ["pytest>=7", "pre-commit", "black", "pydocstyle"]
 
 [project.scripts]
@@ -26,9 +28,6 @@ custom-g4ndl = "custom_g4ndl_generator.cli:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
-
-[tool.setuptools.package-data]
-custom_g4ndl_generator = ["data/*"]
 
 [tool.black]
 line-length = 88

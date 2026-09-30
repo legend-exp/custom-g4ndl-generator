@@ -5,13 +5,7 @@ import zlib
 import numpy as np
 import pytest
 
-from custom_g4ndl_generator.g4ndl import (
-    dump_target,
-    is_compressed,
-    load_target,
-    read_xs,
-    write_xs,
-)
+from custom_g4ndl_generator.g4ndl import dump_target, load_target, read_xs, write_xs
 
 # One header line, leading-tab tab-separated data (IAEA / Geant4 >= 10.6).
 TAB_FAMILY = (
@@ -64,13 +58,12 @@ def test_write_updates_entry_count():
 
 def test_load_dump_plain_and_compressed(tmp_path):
     plain = tmp_path / "32_76_Germanium"
-    dump_target(plain, TAB_FAMILY, compress=False)
-    assert not is_compressed(plain)
+    dump_target(plain, TAB_FAMILY)
+    assert plain.read_text(encoding="latin-1") == TAB_FAMILY
     assert load_target(plain) == TAB_FAMILY
 
     comp = tmp_path / "32_76_Germanium.z"
-    dump_target(comp, TAB_FAMILY, compress=True)
-    assert is_compressed(comp)
+    dump_target(comp, TAB_FAMILY)
     # Really zlib-compressed on disk, and transparently read back.
     assert zlib.decompress(comp.read_bytes()).decode("latin-1") == TAB_FAMILY
     assert load_target(comp) == TAB_FAMILY

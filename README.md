@@ -1,15 +1,16 @@
 # custom-g4ndl-generator
 
 Generate custom [G4NDL](https://geant4.web.cern.ch/) neutron-data libraries in
-which the **Ge-76 radiative-capture cross section**
-(`Capture/CrossSection/32_76_Germanium`) is scaled and/or replaced with the
+which selected cross sections are scaled and/or replaced with external data.
+A YAML config file sets which files change and how. The rest of the library is
+copied through unchanged.
+
+The example `examples/ge76_ntof.yaml` scales the
+**Ge-76 radiative-capture cross section** and replaces part of it with the
 n_TOF measurement of Ge-76(n,γ)
 ([Phys. Rev. C **104**, 044610](https://journals.aps.org/prc/abstract/10.1103/PhysRevC.104.044610)).
-
-These custom libraries are used for Ge-77(m) production studies in LEGEND
+These libraries are used for Ge-77(m) production studies in LEGEND
 (see [legend-simflow#265](https://github.com/legend-exp/legend-simflow/issues/265)).
-Only the `32_76_Germanium` capture file is modified; the rest of the library is
-copied through unchanged.
 
 ## Install
 
@@ -20,10 +21,41 @@ pip install -e .
 ## Usage
 
 ```
-custom-g4ndl --source <NAME|URL|dir|tarball> --output DIR [options]
+custom-g4ndl CONFIG.yaml [--source <NAME|URL|dir|tarball>] [--output DIR] [options]
 ```
 
-The `--source` can be:
+### Config file
+
+```yaml
+source: JEFF-3.3          # any command-line option, without the leading "--"
+output: ./out
+base-library: G4NDL.4.7.1
+
+customization:            # G4NDL folder layout, names as in the library
+  Capture:
+    CrossSection:
+      32_76_Germanium:            # selects 32_76_Germanium or 32_76_Germanium.z
+        scale: 1.68                 # multiply sigma (default 1.0)
+        substitute: 76GE_XS.yaml    # YAML file, relative to the config file
+      32_74_Germanium:
+        substitute:                 # or in-line (E [eV], sigma [barn]) pairs
+          - [0.0257, 0.154]
+          - [52000.0, 0.012]
+```
+
+* Options on the **command line override** the same keys in the config file.
+* Folder and file keys are the names in the G4NDL library
+  (`Capture/CrossSection/32_76_Germanium`).
+* The `.z` suffix of the file name is optional. The key selects the plain file
+  (e.g. JEFF-3.3) and the compressed file (e.g. G4NDL 4.7.1).
+* Only `CrossSection` files can be adjusted. Other folders (`FS`, `F01`, ...)
+  have a different data format.
+* A substitution file is a YAML file with the same list of `[E, sigma]`
+  pairs as the in-line form (see `examples/76GE_XS.yaml`).
+
+### Library source
+
+The `source` can be:
 
 * a **G4NDL library name**, downloaded from
   `https://cern.ch/geant4-data/datasets/<NAME>.tar.gz`
@@ -38,64 +70,48 @@ The `--source` can be:
 Examples:
 
 ```bash
-# Download JEFF-3.3 from IAEA, apply the default scaling + n_TOF substitution
-custom-g4ndl --source JEFF-3.3 --output ./out
+# Ge-76 template as it is: JEFF-3.3, scale 1.68 + n_TOF substitution
+custom-g4ndl examples/ge76_ntof.yaml
 
-# Use a library you already have on disk, custom scale factor
-custom-g4ndl --source /data/G4NDL4.7 --output ./out --scale 1.5
-
-# Global scaling only, no substitution
-custom-g4ndl --source ENDF-VIII.0 --output ./out --no-substitution
-
-# Supply your own substitution table
-custom-g4ndl --source JEFF-3.3 --output ./out --substitution my_xs.dat
+# Same adjustment on a library you already have on disk
+custom-g4ndl examples/ge76_ntof.yaml --source /data/G4NDL4.7 --output ./out
 ```
 
-Each run writes `DIR/<name>/` (the modified library, directly usable by Geant4)
-and `DIR/<name>.tar.gz`. Point Geant4 at the directory via the neutron-HP data
-environment variable, e.g. `G4NEUTRONHPDATA` / `G4PARTICLEHPDATA`.
+Each run writes `DIR/<name>/` (the modified library, directly usable by Geant4).
+With `--tarball` it also writes `DIR/<name>.tar.gz`. Point Geant4 at the directory via the neutron-HP data
+environment variable `G4NEUTRONHPDATA`.
 
 ### Options
 
 | Option | Description |
 | --- | --- |
-| `--scale FACTOR` | Global scale factor for σ (default `1.68`). |
-| `--substitution FILE` | n_TOF `(E, σ)` table (default: bundled `76GE_XS.dat`). |
-| `--no-substitution` | Scale only; skip substitution. |
-| `--legacy-energy-shift` | Reproduce the legacy `E/factor` artifact on the below-range tail (energy ÷ factor, σ left unscaled) instead of the default uniform σ scaling (see below). |
+| `--source SOURCE` | Library to start from (see above). |
+| `--output DIR` | Output folder. |
 | `--base-library SOURCE` | Full G4NDL used to fill in folders a translated library omits (default: a pinned `G4NDL.4.7.1` download). Accepts a dir / `.tar.gz` / IAEA name / G4NDL name / URL, like `--source`. |
 | `--allow-incomplete` | Write the library even when the omitted folders cannot be filled in (produces a library Geant4 cannot fully use). |
 | `--cache-dir DIR` | Where downloads/extractions are cached. |
 | `--rename NAME` | Name of the output library directory. |
-| `--no-tarball` | Skip the `.tar.gz`. |
+| `--tarball` | Also write `DIR/<name>.tar.gz`. |
 | `--force` | Overwrite an existing output directory. |
 | `-v`, `-vv` | More verbose logging. |
 
 ## What the adjustment does
 
-With substitution enabled (the default), for scale `factor`:
+With `substitute` set, for `scale: factor`:
 
 | energy region | output `(E, σ)` |
 | --- | --- |
-| `E < E_min` (below the n_TOF range) | `(E, σ × factor)` — see note |
-| `E_min ≤ E ≤ E_max` (~0.026 eV – 52 keV) | n_TOF `(E, σ)` (fully replaced) |
+| `E < E_min` (below the substitution range) | `(E, σ × factor)` |
+| `E_min ≤ E ≤ E_max` | substitution `(E, σ)` (fully replaced, not scaled) |
 | `E > E_max` | `(E, σ × factor)` |
 
-> **Note.** By default σ is scaled uniformly by `factor` and the energy grid is
-> left unchanged, matching the current per-library production datasets (e.g.
-> `generated_xs/32_76_Germanium_JEFF-3.3_n_TOF_scaled`). Pass
-> `--legacy-energy-shift` to instead reproduce an artifact of the original
-> `merge_cross_sections.py`: on the below-range tail the energy is divided by
-> `factor` and σ is left at its original (unscaled) value — this reproduces the
-> older `generated_xs/32_76_Germanium_n_TOF_scaled`.
+Without `substitute`, every σ is multiplied by `factor` and the energy grid is
+left unchanged.
 
-With `--no-substitution`, every σ is multiplied by `factor` and the energy grid
-is left unchanged.
+An illustration of the effect is in `docs/examples/draw_comparison.py` (requires `matplotlib`)
+with the resulting plot also shown below.
 
-An illustration of the effect is in `misc/draw_comparison.ipynb` (requires `matplotlib`)
-with the reulting plot also shown below.
-
-![Comparison of original and adjusted Ge-76(n,γ) cross sections](misc/comparison_plot.png)
+![Comparison of original and adjusted Ge-76(n,γ) cross sections](docs/examples/comparison_plot.png)
 
 ## Completing translated libraries
 
@@ -114,11 +130,11 @@ them:
 a base G4NDL (`--base-library`, default: a pinned `G4NDL.4.7.1` download).
 Existing library data is never overwritten — only the missing folders are filled.
 If the folders are missing and no base can supply them, the run aborts
-rather than emit a silently-broken library; pass `--allow-incomplete` to override.
+rather than emit a silently-broken library. Pass `--allow-incomplete` to override.
 
 ```bash
 # JEFF-3.3, with the four missing folders overlaid from a G4NDL you have on disk
-custom-g4ndl --source JEFF-3.3 --output ./out --base-library /data/G4NDL4.7.1
+custom-g4ndl my_config.yaml --source JEFF-3.3 --output ./out --base-library /data/G4NDL4.7.1
 ```
 
 ## Workflow: generate a library and load it into Geant4
@@ -126,16 +142,14 @@ custom-g4ndl --source JEFF-3.3 --output ./out --base-library /data/G4NDL4.7.1
 End-to-end, from a source library to a Geant4 run:
 
 ```bash
-# 1. Generate. Writes ./out/JEFF-3.3/ (the library) and ./out/JEFF-3.3.tar.gz.
-#    --base-library fills in the folders JEFF-3.3 omits (see above); drop it to
+# 1. Generate. Writes ./out/JEFF-3.3/ (the library).
+#    --base-library fills in the folders JEFF-3.3 omits (see above). Drop it to
 #    use the pinned default G4NDL download instead.
-custom-g4ndl --source JEFF-3.3 --output ./out --base-library /data/G4NDL4.7.1
+custom-g4ndl my_config.yaml --source JEFF-3.3 --output ./out --base-library /data/G4NDL4.7.1
 
-# 2. Point Geant4's neutron/particle-HP data at the generated directory.
-#    Use an ABSOLUTE path; export it in your shell (or .bashrc, or job script).
+# 2. Point Geant4's neutron-HP data at the generated directory.
+#    Use an ABSOLUTE path. Export it in your shell (or .bashrc, or job script).
 export G4NEUTRONHPDATA="$(pwd)/out/JEFF-3.3"
-#    Geant4 >= 11 reads the generalized particle-HP variable instead:
-export G4PARTICLEHPDATA="$G4NEUTRONHPDATA"
 
 # 3. Run your Geant4 application as usual. It now uses the adjusted Ge-76
 #    capture cross section. Sanity-check the variable actually points at a
@@ -147,10 +161,9 @@ Notes:
 
 * Set the variable to the **library directory** (the one containing `Capture/`),
   not to `./out` and not to the `.tar.gz`.
-* Which variable Geant4 honors depends on its version — `G4NEUTRONHPDATA` for the
-  neutron-HP models, `G4PARTICLEHPDATA` for the particle-HP models in Geant4 ≥ 11.
-  Exporting both is harmless and portable.
-* To deploy elsewhere, copy the `.tar.gz`, extract it, and point the variable at
+* `G4PARTICLEHPDATA` is for the charged-particle data (G4TENDL). Set it only
+  for a library made from `G4TENDL`.
+* To deploy elsewhere, run with `--tarball`, copy the `.tar.gz`, extract it, and point the variable at
   the extracted directory.
 
 ## G4NDL cross-section format
@@ -158,7 +171,7 @@ Notes:
 A G4NDL `Capture/CrossSection` file is G4NDL's internal representation (not
 literal ENDF-6): a small header followed by a flat stream of `(energy, σ)` pairs,
 three pairs per line. Three header families are supported transparently (tab /
-`G4NDL`-string / bare); individual `.z` (zlib) compressed files are handled too.
+`G4NDL`-string / bare). Individual `.z` (zlib) compressed files are handled too.
 See `src/custom_g4ndl_generator/g4ndl.py`.
 
 ## Development

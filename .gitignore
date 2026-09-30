@@ -6,3 +6,4 @@ dist/
 .pytest_cache/
 *.swp
 .nfs*
+docs/_build/
